@@ -17,7 +17,6 @@ pingsweep() {
 	for i in {1..200}; do 
 		local node="${base}${i}"
 		if ping -c 1 $node &> /dev/null; then 
-			echo "active node found" 
 			((active_nodes++))
 		else 
 			echo "no response from $node"

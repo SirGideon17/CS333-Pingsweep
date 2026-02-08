@@ -107,6 +107,7 @@ host_sweep() {
   echo "----------------------------"
 
   PAD_LEN=${#RANGE_START}
+  UP_DIR=$(mktemp -d)
 
   for i in $(seq "$RANGE_START" "$RANGE_END"); do
     (
@@ -115,6 +116,9 @@ host_sweep() {
       if ping_host "$TARGET"; then
         IP=$(getent hosts "$TARGET" 2>/dev/null | awk '{print $1}')
         [ -n "$IP" ] && echo "[UP] $TARGET  ($IP)" || echo "[UP] $TARGET"
+        touch "${UP_DIR}/${PADDED}.up"
+      else
+        touch "${UP_DIR}/${PADDED}.down"
       fi
     ) &
   done
@@ -132,4 +136,11 @@ fi
 
 wait
 echo "----------------------------"
+if [ "$MODE" = "host" ]; then
+  FOUND=$(find "$UP_DIR" -name '*.up' 2>/dev/null | wc -l | tr -d ' ')
+  NOT_FOUND=$(find "$UP_DIR" -name '*.down' 2>/dev/null | wc -l | tr -d ' ')
+  echo "Nodes found: ${FOUND}"
+  echo "Nodes not found: ${NOT_FOUND}"
+  rm -rf "$UP_DIR"
+fi
 echo "Scan complete."
